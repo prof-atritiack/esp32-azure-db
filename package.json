@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "mssql": "^11.0.1",
+    "node-red-contrib-moment": "^5.0.0",
+    "node-red-contrib-mssql": "^0.0.7"
+  }
+}

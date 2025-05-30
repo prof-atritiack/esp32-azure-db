@@ -1,0 +1,7 @@
+{
+    "temperatura": 25.6,
+    "umidade": 65.4,
+    "modulo_id": "ESP32_001",
+    "ip": "192.168.1.100",
+    "mac": "AA:BB:CC:DD:EE:FF"
+} 
