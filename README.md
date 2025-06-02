@@ -1,6 +1,6 @@
-# Sistema de Monitoramento com ESP32, Node-RED e Azure SQL
+# Sistema de Monitoramento com ESP32 e Azure SQL
 
-Este projeto implementa um sistema completo de monitoramento de sensores utilizando ESP32, Node-RED e Azure SQL Database. O sistema coleta dados de temperatura, umidade e informações do dispositivo, armazenando-os automaticamente na nuvem Azure.
+Este projeto implementa um sistema de monitoramento que coleta dados de sensores do ESP32 e os armazena em um banco de dados Azure SQL através do Node-RED.
 
 ## Arquitetura do Sistema
 
@@ -8,17 +8,17 @@ Este projeto implementa um sistema completo de monitoramento de sensores utiliza
 ESP32 (Sensor) → MQTT → Node-RED → Azure SQL Database
 ```
 
-## Componentes Necessários
+## Componentes do Sistema
 
-### Hardware
-- ESP32 (qualquer modelo)
-- Sensor de temperatura e umidade (DHT11, DHT22, ou similar)
+### Hardware Necessário
+- ESP32 com sensor DHT (temperatura e umidade)
+- Conexão com internet
 
 ### Software e Serviços
-- Conta Azure com subscrição ativa
-- Node-RED instalado
-- Servidor MQTT (pode ser local ou serviço em nuvem)
 - Node.js e npm
+- Node-RED instalado
+- Servidor MQTT (local ou em nuvem)
+- Conta Azure com subscrição ativa
 
 ### Dependências Node.js
 - `mssql`: Para conexão com Azure SQL Database
@@ -28,30 +28,12 @@ ESP32 (Sensor) → MQTT → Node-RED → Azure SQL Database
 
 ## Configuração do Ambiente
 
-### 1. Variáveis de Ambiente
-1. Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
-```env
-# Azure SQL Database Credentials
-DB_USER=seu_usuario
-DB_PASSWORD=sua_senha
-DB_SERVER=seu_servidor.database.windows.net
-DB_NAME=nome_do_banco
-
-# MQTT Broker Settings (se necessário)
-MQTT_BROKER=
-MQTT_USERNAME=
-MQTT_PASSWORD=
-```
-
-2. Crie um arquivo `.env.example` como template (sem credenciais reais)
-3. O arquivo `.env` já está configurado no `.gitignore` para não ser versionado
-
-### 2. Instalação de Dependências
+### 1. Instalação de Dependências
 ```bash
 npm install mssql dotenv node-red-contrib-mssql node-red-contrib-moment
 ```
 
-## Estrutura do Banco de Dados
+### 2. Configuração do Banco de Dados
 
 A tabela `SensorData` possui a seguinte estrutura:
 
@@ -73,7 +55,17 @@ CREATE INDEX idx_data_hora ON SensorData(data_leitura, hora_leitura);
 CREATE INDEX idx_modulo ON SensorData(modulo_id);
 ```
 
-## Formato do JSON
+### 3. Configuração do Node-RED
+
+1. Importe o fluxo do arquivo `nodered_flow.json`
+2. Configure as credenciais do broker MQTT e Azure SQL nos respectivos nós
+3. O fluxo está configurado para:
+   - Receber dados via MQTT
+   - Processar e formatar os dados
+   - Inserir no Azure SQL Database
+   - Monitorar status das conexões
+
+## Formato dos Dados
 
 O ESP32 deve publicar os dados no seguinte formato JSON:
 
@@ -91,7 +83,7 @@ O ESP32 deve publicar os dados no seguinte formato JSON:
 
 ### Credenciais e Dados Sensíveis
 1. **Variáveis de Ambiente**:
-   - Use o arquivo `.env` para armazenar credenciais
+   - Use arquivo `.env` para armazenar credenciais
    - Nunca comite o arquivo `.env` no controle de versão
    - Mantenha um `.env.example` como template
    
@@ -107,12 +99,6 @@ O ESP32 deve publicar os dados no seguinte formato JSON:
    - Habilite autenticação no dashboard
    - Use HTTPS para acesso à interface
    - Mantenha o Node-RED atualizado
-
-4. **ESP32**:
-   - Armazene credenciais WiFi/MQTT em arquivo separado
-   - Use MQTT sobre TLS quando possível
-   - Implemente atualização segura do firmware (OTA)
-   - Evite expor informações sensíveis nos logs
 
 ### Monitoramento e Logs
 - Implemente logs de auditoria para acessos ao banco
@@ -133,9 +119,17 @@ O ESP32 deve publicar os dados no seguinte formato JSON:
 | Problema | Solução |
 |----------|---------|
 | Erro de conexão com Azure | Verifique variáveis de ambiente e firewall |
-| Falha na autenticação MQTT | Confirme credenciais no `.env` |
+| Falha na autenticação MQTT | Confirme credenciais no Node-RED |
 | Dados não chegam ao banco | Verifique logs do Node-RED e formato do JSON |
 | Erro de SSL/TLS | Confirme configurações de criptografia |
+
+## Scripts Úteis
+
+O projeto inclui scripts para testar e gerenciar o banco de dados:
+
+- `test_connection.js`: Testa a conexão com o banco e exibe registros
+- `test_connection_2.js`: Verifica a estrutura da tabela
+- `alter_table_SensorData.js`: Script para alterações na tabela
 
 ## Contribuição
 
@@ -151,4 +145,4 @@ Distribuído sob a licença MIT.
 
 ---
 
-Desenvolvido com ❤️ para aplicações de IoT com ESP32, Node-RED e Azure.
+Desenvolvido para monitoramento de sensores com ESP32 e Azure SQL Database.
