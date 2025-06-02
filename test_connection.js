@@ -1,11 +1,12 @@
+require('dotenv').config();
 const sql = require('mssql');
 
 // Configuração da conexão
 const config = {
-    user: 'adminESP32',
-    password: '@Q1W2E3R4',
-    server: 'esp32-sensor-server.database.windows.net',
-    database: 'ESP32SensorDB',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    server: process.env.DB_SERVER,
+    database: process.env.DB_NAME,
     options: {
         encrypt: true,
         trustServerCertificate: false

@@ -1,0 +1,13 @@
+[wokwi]
+version = 1
+firmware = ".pio/build/wokwi/firmware.bin"
+elf = ".pio/build/wokwi/firmware.elf"
+
+[[pins]]
+name = "DHT22 Data"
+number = 23
+
+# Pino do LED embutido
+[[pins]]
+name = "LED"
+number = 2 

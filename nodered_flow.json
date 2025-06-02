@@ -8,9 +8,9 @@
             "z": "esp32_to_azure",
             "name": "ESP32 MQTT Input",
             "topic": "esp32/sensor_data",
-            "qos": "0",
+            "qos": "2",
             "datatype": "json",
-            "broker": "",
+            "broker": "broker_config",
             "nl": false,
             "rap": true,
             "rh": 0,
@@ -22,8 +22,8 @@
             "id": "process_data",
             "type": "function",
             "z": "esp32_to_azure",
-            "name": "Process Sensor Data",
-            "func": "// Extrair dados do payload JSON\nconst now = new Date();\n\n// Criar objeto com dados formatados\nmsg.payload = {\n    data_leitura: now.toISOString().split('T')[0],\n    hora_leitura: now.toTimeString().split(' ')[0],\n    temperatura: msg.payload.temperatura,\n    umidade: msg.payload.umidade,\n    modulo_id: msg.payload.modulo_id,\n    ip_address: msg.payload.ip,\n    mac_address: msg.payload.mac\n};\n\n// Criar query SQL\nmsg.query = `INSERT INTO SensorData \n    (data_leitura, hora_leitura, temperatura, umidade, modulo_id, ip_address, mac_address) \nVALUES \n    (@data_leitura, @hora_leitura, @temperatura, @umidade, @modulo_id, @ip_address, @mac_address)`;\n\nreturn msg;",
+            "name": "Preparar Dados",
+            "func": "// Extrair dados do payload JSON\nconst now = new Date();\n\n// Formatar data e hora\nconst data = msg.payload.data || now.toISOString().split('T')[0];\nconst hora = msg.payload.hora || now.toTimeString().split(' ')[0];\n\n// Criar objeto com dados formatados\nmsg.payload = {\n    data_leitura: data,\n    hora_leitura: hora,\n    temperatura: msg.payload.temperatura,\n    umidade: msg.payload.umidade,\n    modulo_id: msg.payload.modulo_id,\n    ip_address: msg.payload.ip,\n    mac_address: msg.payload.mac\n};\n\n// Criar query SQL parametrizada\nmsg.topic = `\n    INSERT INTO SensorData \n    (data_leitura, hora_leitura, temperatura, umidade, modulo_id, ip_address, mac_address) \n    VALUES \n    (@data_leitura, @hora_leitura, @temperatura, @umidade, @modulo_id, @ip_address, @mac_address)\n`;\n\nreturn msg;",
             "outputs": 1,
             "noerr": 0,
             "initialize": "",
@@ -31,19 +31,19 @@
             "libs": [],
             "x": 340,
             "y": 120,
-            "wires": [["azure_sql"]]
+            "wires": [["azure_sql", "debug"]]
         },
         {
             "id": "azure_sql",
             "type": "MSSQL",
             "z": "esp32_to_azure",
-            "mssqlCN": "",
+            "mssqlCN": "azure_connection",
             "name": "Azure SQL",
             "query": "",
             "outField": "payload",
             "x": 550,
             "y": 120,
-            "wires": [["debug"]]
+            "wires": [["status"]]
         },
         {
             "id": "debug",
@@ -58,9 +58,70 @@
             "targetType": "msg",
             "statusVal": "",
             "statusType": "auto",
-            "x": 760,
+            "x": 550,
+            "y": 180,
+            "wires": []
+        },
+        {
+            "id": "status",
+            "type": "status",
+            "z": "esp32_to_azure",
+            "name": "Status",
+            "scope": ["mqtt_in", "azure_sql"],
+            "x": 750,
             "y": 120,
             "wires": []
+        }
+    ],
+    "configs": [
+        {
+            "id": "broker_config",
+            "type": "mqtt-broker",
+            "name": "MQTT Broker",
+            "broker": "${MQTT_BROKER}",
+            "port": "1883",
+            "clientid": "",
+            "autoConnect": true,
+            "usetls": false,
+            "protocolVersion": "4",
+            "keepalive": "60",
+            "cleansession": true,
+            "birthTopic": "",
+            "birthQos": "0",
+            "birthPayload": "",
+            "birthMsg": {},
+            "closeTopic": "",
+            "closeQos": "0",
+            "closePayload": "",
+            "closeMsg": {},
+            "willTopic": "",
+            "willQos": "0",
+            "willPayload": "",
+            "willMsg": {},
+            "userProps": "",
+            "sessionExpiry": ""
+        },
+        {
+            "id": "azure_connection",
+            "type": "MSSQL-CN",
+            "name": "Azure SQL Connection",
+            "server": "${DB_SERVER}",
+            "database": "${DB_NAME}",
+            "authentication": {
+                "type": "basic",
+                "options": {
+                    "userName": "${DB_USER}",
+                    "password": "${DB_PASSWORD}"
+                }
+            },
+            "options": {
+                "encrypt": true,
+                "trustServerCertificate": false,
+                "enableArithAbort": true,
+                "instanceName": "",
+                "rowCollectionOnDone": true,
+                "rowCollectionOnRequestCompletion": true
+            }
         }
     ]
 } 
